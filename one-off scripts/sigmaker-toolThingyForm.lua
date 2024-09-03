@@ -3,12 +3,24 @@ local fs,ss,fm
 local Blocks = {}
 local MAX_PER_LINE = 30
 
+function parseSig(text)
+         local s = {string.split(text, " ")}
+         local b = {}
+         for i=1, #s do
+             local n = s[i]
+             if n == "??" then n = -1 else n = tonumber(n,16) end
+             b[i] = n
+         end
 
+         return b
+end
 function toTextSig(tab,maxLen)
  local tlen = #tab
  if len == 0 then return "" end
  for i=1,tlen do
-	if type(tab[i]) == "number" then tab[i] = string.format("%02X",tab[i]) end
+	if type(tab[i]) == "number" then
+        if tab[i] == -1 then tab[i] = "??" else tab[i] = string.format("%02X",tab[i]) end
+    end
  end
  if maxLen then tab = table.move(tab,1,maxLen,1,{}) end
  return table.concat(tab," ")
@@ -19,7 +31,7 @@ function diff(arr) --arr must be a arr of tables. tables need to be same size
 	for i=1,#arr[1] do
 		sig[i] = arr[1][i]
 	end
-	
+
 	for i=2, #arr do
 		for j=1, #arr[i] do
 			sig[j] = sig[j] == arr[i][j] and sig[j] or "??"
@@ -30,7 +42,13 @@ end
 
 function updateOut()
 local mOut = fm.mOutSig
-	mOut.Lines.Text = toTextSig(diff(Blocks))
+    local outText = toTextSig(diff(Blocks))
+	mOut.Lines.Text = outText
+    local totalBytes = tonumber(fm.inBufferSize.Text)
+    totalBytes = totalBytes or 0
+    if fm.cbBlockSize.Checked then totalBytes = totalBytes*2 end
+    local _, nSigged = outText:gsub("%?%?","")
+    fm.lblSiggedBytes.Caption = ("Masked bytes: %s/%s"):format(nSigged,totalBytes)
 end
 function toggleGUI(s)
 	if s then
@@ -45,7 +63,7 @@ function toggleGUI(s)
 end
 fs = [=[<?xml version="1.0" encoding="utf-8"?>
 <FormData>
-  <frmToolThingy Class="TCEForm" Encoding="Ascii85">tyax$)?GSc+hy@1g^ri]T[EHKxI]5Tkgo2g2@0^iis{g1PV7lC%48.+nY7J*gS%k_3+Lb;55X)2V2[Ys!J0ec?lPCLwS=PM;T}AvIp6o4/9X*.)0[Kg?ASJ54.i0c8S-hLG14DnI$G3wXejOXwdP{lM]LN9+6co.+^=w31(-y_^$@b^h$KEmT{CBm#PP^#h)^g5qKR/2a3)RMO/w}BGC_zx5^#)K?qF]t26tTn3CSU+QnZgSP4hm3y[JAD?Xl*Wy1nO!3.iDFZhOCdue{dk*l3f#5NVMCIf!G9gt(1*qcP)lj+*JvomJc%NUBo*D8d}kC7b36TM8p-D8(Dugb-@x/-@*e::hY/Vcl@Iitw9oqBC7MF:+gghw(Kka0VkqLpy/K=Uo.(B$%z7H#aT*FaH[jili/hjJp76tscf$dYE3(,+1F$D:GSi/3Yhqf!B,$YH1z7wQ?#(zN.!j,z?k@5py#k:40lQH%byXIM(Ttzzq:zCFIfqp8DBCbfmZgJAHI6A1i$iS:y?OM2dMBO-i9qE)mg)L)yR+28GroohsT%#lBfY6VCH@!DzJ}QVi2?qwEB]mO9}n=gR%.l6MqV+eR;7(RKgGIKfXE3v[2yX4t}CGan8WhDxgPLy4o!98rSUz!N^RVR;3uqW1q/!dH{Z$0$.SpZn1uueOqvW$HF$Wf_fUtk_zXM$2wpx6%Cf$uNj=)I^4^5)R?}hbpuHivZ5mtD)dZBxDi9Y)5_.ZU._fAR/UbFl0Pnv}-9jC@IIo-p;J}?%jvkMli^UF-MVhTOv}{b23]Dx$3zyw-qhp.6Zj*Ts7[t$LvhE/,_A}uaMgUz+7:,:8907j#HI3jpH,l]0uc8bgLZsWrOUkCar*{FNL4VOyes6D?*@cLiMebYWq9+weLq]%[eE;m7kg8+5A2cjbzSzJvQyMjIS+tnttXMGTCO5dRWNk7?aMD,BZ[m1S@Fw.msu_cDG=U8!-C:(??_4erL(9Zor9)q,DNWQ9JADRhycT]Bd4zmJ^uy*wtPh#X7h9aAakJbq/Q$MrR;Wk!k.#S;mOhl{8-MJxr1C^G(OMSZzo)ZQf6#c7kAhOv%FYPS^zRRLEKPw2Ed]x}Jj/%?}+F]+DP)%$Xj}r4smpd)vj;aoIZ=(gt+k/5wosuID%2x1fBJ]BJ.Ad*D6g3XNJ{q^/;4$c57sLa*)6t475KQT[b}</frmToolThingy>
+  <frmToolThingy_7 Class="TCEForm" Encoding="Ascii85">tyWEM,cp?cCCiemv[:_t-C-DX$Z;OnT;:!l#9p%(bC4o7,TIFUqHV%7X@=ah[aF4K,jiK0+m+x/e[?B,hXLDR:Z(PkEZ15Rx9},4Up^*?:Xu[jJiZ6O?WttoJM29?WqjTm@ZAf5GMr+MS-m-}[t99_ztkGf5S}n;eOa?IY,-+7oL4xOQ}Pi0-bp0!CF)IMIU^akB/V;UyFIv(n9*X^)L!n9[Id.)Ds!kH]JW+/Jw[O;A08fphYC)e4l$LYbB1ZU/qy![SV.E%Y(B2S[d5o[btCd;iY03Hd.OP*3!R4hRY)7hfTs%W!x17*G9oHbj*eH,gho?w2RKH$,_EWVpBBqqCMBEa0ecFgOIS1..J3)7WwlbKtd:3[[mn8;OE+CgK=BZoqz7jS8hFrUJVt!5fRSRUV[:#G/)C%+vzgQCrKvv(UO:umG=jY+XdR!%So*aWP}2Mm2OA.!!S$iwNrDfHWmVEPfCuG;e1A]6hIm5EX-3Q:L)FfPgMI_5=qL]zb;Qe,+KGlBfXF}XE-m1z$3CJHMI,cBqHFm}$+%;@[3jcF%{PrHxgyAIj767]7!/OXB()/[*%^ViYUt0]3v#QikzypZJ7rVYwbT@HxhY(YGv6p(v0pZT,Gn,IFhyVr3w32xzSzUGyBv:dh6/^)Mv0?^%u#}a!5.r,ee;N]cho,vI_9W^Z.B$t^dEwH@293%T4!-bg4Q8!L6H3e$QU{P;oOYeo^z(wCyin=Ur^+HSqp[0ViCfn]ZSa^f]qKXm?P+H#hviE3]GQ}2+-=vjFvW0gR*:);v/kR8gGxFXaY=^j5()5?r,]%%,zSxJges;Z7Eu(.Wyb^aX(HYV9Ks@S*P_Y]GwpT0KSr[yHteIw6m)Tan7$O.vd3#qFZJ6uN$Pj8MFaXJs.jnGhN;R+q9%m8;(A]skZ,CcRN+[EkmW+F275+TVLmbIi{A7bHJu*^MAfE*9/]OCOhe+J^IyNMpps39N;xJO6.UovRElZvb=)l#TZXm(Kk]A6:/3+H@1ZLEIV,fR#L8SHM8CA@fuSVnyVg^bJYp8oO3r#%+)Dg+0nu@6D#YnYf!^G-IYW_r2R$aj?P/vzU4UXV}T[yoGppOYFMhq@WW;b3k2hHN;.vq!LHJvLfN^n1x:::cPTE:f@nIgDracU-1,%ZDy=t0NbNQ$+KM=8%YLX,=$WGwJ-.mf1j/+PKWn!()$+^C]bn6{*f[{BL),v?xD6rna4lqWDvrsu][O%LP%C.TC@k0QsZUdR_Nj+GNTaY[zDm8$I@xaUCSiMfTekA9,CPIrpR6Oz%9HTu?zKVO3j7B</frmToolThingy_7>
 </FormData>
 ]=]
 ss = createStringStream(fs)
@@ -88,7 +106,7 @@ fm.lvSigBlocks.OnDblClick = function()
 		if k == VK_ESCAPE then fmm.close() end
 	end
 	local sel = fm.lvSigBlocks.Selected
-    local index	
+    local index
 	if sel then
 		index = sel.Index
 		mm.Lines.Text = toTextSig(Blocks[index+1])
@@ -126,6 +144,21 @@ end
 
 pm.Items.add(miDeleteAll)
 
+miAddManual = createMenuItem(pm)
+miAddManual.Caption = "Add manual AOB"
+pm.Items.add(miAddManual)
+miAddManual.OnClick = function()
+    local textSig = inputQuery("Add manual AOB", "Paste the AOB you want to add","")
+    if not textSig then return end
+    local b = parseSig(textSig)
+    local lv = fm.lvSigBlocks
+	local it = lv.Items.add()
+	it.Caption = "Manual"
+    Blocks[#Blocks+1] = b
+	it.SubItems.addText(toTextSig(b,MAX_PER_LINE)..((#b>MAX_PER_LINE) and " ...." or ""))
+    updateOut()
+end
+
 fm.btnAdd.OnClick = function(btn)
 	local addrText = fm.inAddress.Text
 	if addrText:gsub("%s+", "") == "" then addrText = AddressList.SelectedRecord.AddressString end
@@ -151,12 +184,12 @@ fm.btnAdd.OnClick = function(btn)
 		end
 	end
 	Blocks[#Blocks+1] = b
-	
+
 local lv = fm.lvSigBlocks
 	local it = lv.Items.add()
 	it.Caption = string.format("%X",addr)
 	it.SubItems.addText(toTextSig(b,MAX_PER_LINE)..((#b>MAX_PER_LINE) and " ...." or ""))
-	
+
 updateOut()
 
 end
