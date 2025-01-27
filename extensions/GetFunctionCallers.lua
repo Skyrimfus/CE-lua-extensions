@@ -108,7 +108,7 @@ btn.OnClick = function()
 		rAddr = {}
 		debug_removeBreakpoint(bAddr)
 		debug_setBreakpoint(bAddr,function()
-			ret = readPointer(RSP)
+			ret = readPointer(RSP or ESP)
 			if rAddr[ret] == nil then
 				rAddr[ret] = 0
 			end
